@@ -1,16 +1,26 @@
-$(document).ready(function(){
-  $('#send .submit').on('submit', function () {
-    app.handleSubmit();
-  });
-});
-
 var app = {
-  'username': function(){
-    return document.URL.split('username=')[1];
-  },
+  'server': 'https://api.parse.com/1/classes/chatterbox',
+  'username': '',
+  'friends': {},
+  'roomList': {},
+
   'init': function(){
-    app.fetch();
+    // set username
+    app.username = document.URL.split('username=')[1];
+
+    // detect sending messages
+    $('#send .submit').on('click', function (event) {
+      event.preventDefault();
+      app.handleSubmit();
+    });
+
+    // grab messages continuously
+    setInterval(function(){
+      app.fetch();
+    }, 1000);
+
   },
+
   'send': function(message) {
     $.ajax({
       url: app.server,
@@ -25,15 +35,16 @@ var app = {
       }
     });
   },
+
   'fetch': function() {
     $.ajax({
       url: app.server,
       type: 'GET',
       contentType: 'application/json',
+      data: {order: '-createdAt'},
       success: function(data){
-        for (var i = 0; i < data.results.length; i++) {
-          app.addMessage(data.results[i]);
-        }
+        app.addMessages(data.results);
+        app.getRooms(data.results);
         console.log('chatterbox: Message received');
       },
       error: function(data){
@@ -41,36 +52,66 @@ var app = {
       }
     });
   },
-  'server': 'https://api.parse.com/1/classes/chatterbox',
+
+  'addMessages': function(messages){
+    for(var i = 0; i< messages.length; i++){
+      var renderedMessage = app.renderMessage(messages[i]);
+      $('#chats').append(renderedMessage);
+    }
+  },
+
+  'renderMessage': function(message) {
+    var $user = $('<div>', {class: 'username'}).text(message.username);
+    var $text = $('<div>', {id: 'message'}).text(message.text);
+    var $message = $('<div>', {class: 'chat', 'data-id': 'message.objectId'}).append($user, $text);
+    return $message;
+  },
+
   'clearMessages': function() {
     $('#chats').children().remove();
   },
-  'addMessage': function(message){
-    //create HTML string
-    var HTML = '<div><a class="username" onclick="app.addFriend.call(this)">' + message.username + '</a><p>' + message.text + '</p></div>';
-    //convert to DOM node & append to body
-    $('#chats').append(HTML);
+
+  'handleSubmit': function(){
+    //build message object
+    var message = {
+      'username': app.username,
+      'text': $('#message').val(),
+      'roomname': 'black hole' //$('#roomSelect').value
+    };
+    $('#message').val('');
+    app.send(message);
   },
-  'addRoom': function(roomName){
-    var HTML = '<ul>' + roomName + '</ul>';
-    $('#roomSelect').append(HTML);
+
+  'getRooms': function(messages){
+    app.roomList = {}; // Refactor to update instead of empty
+    for(var i = 0; i < messages.length; i++){
+      var roomname = messages[i].roomname;
+      if(!app.roomList[roomname]){
+        app.roomList[roomname] = true;
+      }
+    }
+    app.listRooms();
   },
-  'friends': {},
+
+  'listRooms': function(){
+    $('#roomList').empty(); // Refactor to update instead of empty
+    for(var roomname in app.roomList){
+      var renderedRoom = app.renderRoom(roomname);
+      $('#roomList').append(renderedRoom);
+    }
+  },
+
+  'renderRoom': function(roomname){
+    $roomname = $('<div>', {class: 'room'}).text(roomname);
+    return $roomname;
+  },
+
   'addFriend': function() {
     var friendName = this.innerHTML;
     app.friends[friendName] = true;
     console.log(friendName);
     console.log('Friend added!');
-  },
-  'handleSubmit': function(){
-    //build message object
-    console.log("you called me!");
-    var message = {
-      'username': app.username(),
-      'text': $('#message').val(),
-      'roomname': 'black hole' //$('#roomSelect').value
-    };
-    app.send(message);
   }
+  // $('.username').children().css({'fontstyle': 'bold'})
 };
 
