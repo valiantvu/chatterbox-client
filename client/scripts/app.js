@@ -1,8 +1,12 @@
-// YOUR CODE HERE:
+$(document).ready(function(){
+  $('#send .submit').on('submit', function () {
+    app.handleSubmit();
+  });
+});
+
 var app = {
   'username': function(){
-    // return document.URL.split('username=')[1];
-    return 'michelle';
+    return document.URL.split('username=')[1];
   },
   'init': function(){
     app.fetch();
@@ -15,7 +19,6 @@ var app = {
       contentType: 'application/json',
       success: function(data){
         console.log('chatterbox: Message sent');
-        console.dir(data);
       },
       error: function(data){
         console.error('chatterbox: Failed to send message');
@@ -29,7 +32,6 @@ var app = {
       contentType: 'application/json',
       success: function(data){
         for (var i = 0; i < data.results.length; i++) {
-          console.dir(data.results[i]);
           app.addMessage(data.results[i]);
         }
         console.log('chatterbox: Message received');
@@ -62,12 +64,13 @@ var app = {
   },
   'handleSubmit': function(){
     //build message object
+    console.log("you called me!");
     var message = {
       'username': app.username(),
-      'text': $('#message').text(),
+      'text': $('#message').val(),
       'roomname': 'black hole' //$('#roomSelect').value
     };
     app.send(message);
-    console.log('clicked');
   }
 };
+
