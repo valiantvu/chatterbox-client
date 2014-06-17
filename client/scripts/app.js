@@ -1,5 +1,9 @@
 // YOUR CODE HERE:
 var app = {
+  'username': function(){
+    // return document.URL.split('username=')[1];
+    return 'michelle';
+  },
   'init': function(){
     app.fetch();
   },
@@ -11,6 +15,7 @@ var app = {
       contentType: 'application/json',
       success: function(data){
         console.log('chatterbox: Message sent');
+        console.dir(data);
       },
       error: function(data){
         console.error('chatterbox: Failed to send message');
@@ -24,6 +29,7 @@ var app = {
       contentType: 'application/json',
       success: function(data){
         for (var i = 0; i < data.results.length; i++) {
+          console.dir(data.results[i]);
           app.addMessage(data.results[i]);
         }
         console.log('chatterbox: Message received');
@@ -39,7 +45,7 @@ var app = {
   },
   'addMessage': function(message){
     //create HTML string
-    var HTML = '<div><div class="username">' + message.username + '</div><p>' + message.text + '</p></div>';
+    var HTML = '<div><a class="username" onclick="app.addFriend.call(this)">' + message.username + '</a><p>' + message.text + '</p></div>';
     //convert to DOM node & append to body
     $('#chats').append(HTML);
   },
@@ -51,6 +57,17 @@ var app = {
   'addFriend': function() {
     var friendName = this.innerHTML;
     app.friends[friendName] = true;
-    // console.log('Friend added!');
+    console.log(friendName);
+    console.log('Friend added!');
+  },
+  'handleSubmit': function(){
+    //build message object
+    var message = {
+      'username': app.username(),
+      'text': $('#message').text(),
+      'roomname': 'black hole' //$('#roomSelect').value
+    };
+    app.send(message);
+    console.log('clicked');
   }
 };
