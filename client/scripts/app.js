@@ -1,7 +1,7 @@
 var app = {
   server: 'https://api.parse.com/1/classes/chatterbox/',
   username: '',
-  currentRoom: 'lobby',
+  currentRoom: 'black hole',
   friends: {},
   roomList: {},
 
@@ -66,11 +66,15 @@ var app = {
       var renderedMessage = app.renderMessage(messages[i]);
       $('#chats').append(renderedMessage);
     }
+    app.addFriend();
   },
 
   renderMessage: function(message) {
     var $user = $('<div>', {class: 'username'}).text(message.username);
     var $text = $('<div>', {id: 'message'}).text(message.text);
+    if (app.friends[message.username]){
+      $text.addClass('friend');
+    }
     var $message = $('<div>', {class: 'chat', 'data-id': 'message.objectId'}).append($user, $text);
     return $message;
   },
@@ -131,10 +135,11 @@ var app = {
   },
 
   addFriend: function() {
-    var friendName = this.innerHTML;
-    app.friends[friendName] = true;
-    console.log(friendName);
-    console.log('Friend added!');
+    $('.username').on('click', function() {
+      // debugger;
+      app.friends[$(this).text()] = true;
+    });
+    app.fetch(app.addMessages, true);
   }
   // $('.username').children().css({'fontstyle': 'bold'})
 };
